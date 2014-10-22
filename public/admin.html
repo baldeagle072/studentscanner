@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Student Scanner - admin</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="js/jquery-1.11.1.js"></script>
+</head>
+<body>
+	<div class="container">
+		<h1>Student Scanner - Admin</h1>
+		<p>
+			<a href="student-manager">Manage Students</a>
+		</p>
+		<div id="setUpEvent">
+			<!-- form for setting up the event for signing in -->
+			<form id="createEvent">
+				<h2>Create Event</h2>
+				<input id="eventName" placeholder="Name" required='true'>
+				<input type="date" id="eventDate" placeholder="Date" required='true'>
+				<input type="time" id="eventLateTime" placeholder="Late Time" required='true'>
+				<button id="createEventButton">Create Event</button>
+			</form>
+		</div>
+		<div id="eventInfo" class="hidden">
+			<!-- display information after form submission -->
+			<button id="saveSignInButton">Save Sign In</button>
+			<button id="resetSignInButton">Reset Sign In</button>
+		</div>
+		<div id="signedInPeople"></div> <!-- div to display who has signed in -->
+	</div>
+
+	<script>
+		var socket = io();
+		
+		$('#createEvent').submit(function() {
+			var eventObject = {
+				eventName: $('#eventName').val(),
+				eventDate: $('#eventDate').val(),
+				eventLateTime: $('#eventLateTime').val()
+			};
+			socket.emit('create event', eventObject);
+			return false;
+		});
+
+		socket.on('event created', function(eventObj) {
+			$('#eventInfo').prepend('<p>Event: ' + eventObj.eventName + ' Date: ' + eventObj.eventDate + ' Time: ' + eventObj.eventLateTime + '</p>');
+			$('#eventInfo').removeClass('hidden');
+			$('#setUpEvent').addClass('hidden');
+		});
+	</script>
+</body>
+</html>

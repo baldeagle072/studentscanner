@@ -1,0 +1,17 @@
+{
+  "name": "studentScanner",
+  "version": "0.0.0",
+  "description": "For use with barcode scanner",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.9.7",
+    "mongoose": "^3.8.17",
+    "socket.io": "^1.1.0"
+  }
+}

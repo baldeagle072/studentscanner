@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Student Scanner - Sign In</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="js/jquery-1.11.1.js"></script>
+</head>
+<body>
+	<div class="container">
+		<h1>Sign In</h1>
+		<div>
+			<form id="signInForm">
+				<input id="barcodeNum">
+				<button >Sign In</button>
+			</form>
+		</div>
+		<div id="signedInPeople"></div>
+	</div>
+	
+	<script>
+		var socket = io();
+	</script>
+</body>
+</html>

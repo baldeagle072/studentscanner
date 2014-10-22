@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Add Barcode</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="js/jquery-1.11.1.js"></script>
+	<script src="js/lib/sweet-alert.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="js/lib/sweet-alert.css">
+</head>
+<body>
+	<div class="container">
+		<h1>Manage Students</h1>
+		<h2>Add student</h2>
+		<form id="addStudentForm">
+			<input id="addStudentFirstname" placeholder="First Name" required='true'>
+			<input id="addStudentLastname" placeholder="Last Name" required='true'>
+			<input type='number' min="4" max="12" id="addStudentGrade" placeholder="Grade" required='true'>
+			<input id="addStudentBarcode" placeholder="Barcode" required='true'>
+			<button type="submit" id="addBarcodeButton">Add Barcode</button>
+		</form>
+		<div id="addedStudent" class="hidden"><p></p></div>
+		<p>
+			<a href="admin">Back to Admin</a>
+		</p>
+
+		<div id="studentTableDiv">
+			<table id="studentTable">
+			</table>
+		</div>
+	</div>
+
+	<script>
+		var socket = io();
+
+		$(document).ready(function(){
+			socket.emit('update student table');
+		});
+
+		$('#addStudentForm').submit(function() {
+			var firstname = $('#addStudentFirstname').val();
+			var lastname = $('#addStudentLastname').val();
+			var id = $('#addStudentBarcode').val();
+			var grade = $('#addStudentGrade').val();
+			var errorCount = 0;
+			if (firstname == '') {
+				errorCount++;
+				$('#addStudentFirstname').addClass('error');
+			} else {
+				$('#addStudentFirstname').removeClass('error');
+			}
+			if (lastname == '') {
+				errorCount++;
+				$('#addStudentLastname').addClass('error');
+			} else {
+				$('#addStudentLastname').removeClass('error');
+			}
+			if (id == '') {
+				errorCount++;
+				$('#addStudentBarcode').addClass('error');
+			} else {
+				$('#addStudentBarcode').removeClass('error');
+			}
+			if (grade == '') {
+				errorCount++;
+				$('#addStudentGrade').addClass('error');
+			} else {
+				$('#addStudentGrade').removeClass('error');
+			}
+			if (errorCount > 0) {
+				return false;
+			}
+			var newStudent = {
+				firstname:$('#addStudentFirstname').val(),
+				lastname:$('#addStudentLastname').val(),
+				id:$('#addStudentBarcode').val(),
+				grade:$('#addStudentGrade').val() 
+			};
+			socket.emit('add student', newStudent);
+			$('#addStudentFirstname').val('').removeClass('error');
+			$('#addStudentLastname').val('').removeClass('error');
+			$('#addStudentBarcode').val('').removeClass('error');
+			$('#addStudentGrade').val('').removeClass('error');
+			$('#addStudentFirstname').focus();
+			return false;
+		});
+
+		socket.on('student added', function(newStudent) {
+			$addedStudent = $('#addedStudent');
+			$addedStudent.html('<p>Added: ' + newStudent.firstname + ' ' + newStudent.lastname + ' id: ' + newStudent.id + ' Grade: ' + newStudent.grade + '</p>');
+			socket.emit('update student table');
+		});
+
+		socket.on('update student table', function(students) {
+			$studentTableDiv = $('#studentTableDiv');
+			$studentTableDiv.empty();
+			$studentTableDiv.append('<table id="studentTable"><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Grade</th><th>Update</th><th>Delete</th></tr></table>')
+			for (i in students) {
+				var student = students[i];
+				console.log(student);
+				$('#studentTable').append('<tr id="' + student._id + ' "><td id="studentID' + student._id + '">' + student.id + '</td><td id="studentFirstname' + student._id + '">' + student.firstname + '</td><td id="studentLastname' + student._id + '">' + student.lastname + '</td><td id="studentGrade' + student._id + '">' + student.grade + '</td><td id="updateButton' + student._id + '"><button onclick="updateStudent(\'' + student._id + '\')">Update</button></td><td id="deleteButton' + student._id + '"><button onclick="deleteStudent(\'' + student._id + '\')">Delete</button></td></tr>');
+			}
+		});
+
+		function deleteStudent(_id) {
+			var firstname = $('#studentFirstname' + _id).html();
+			var lastname = $('#studentLastname' + _id).html();
+			var name = firstname + ' ' + lastname;
+			swal({
+				title: "Are you sure?",
+				text: name + " is going to be deleted.",
+				type: "warning",
+				showCancelButton: true,
+				confirmButtonColor: "00CC00",
+				confirmButtonText: "Delete",
+				closeOnConfirm: true
+			}, function() {
+				socket.emit('delete student', _id);
+				socket.emit('update student table');
+			});
+		};
+
+		function updateStudent(_id) {
+			var $studentTable = $('#studentTable')
+			var $studentID = $('#studentID' + _id);
+			var $studentFirstname = $('#studentFirstname' + _id);
+			var $studentLastname = $('#studentLastname' + _id);
+			var $studentGrade = $('#studentGrade' + _id);
+			var $updateButton = $('#updateButton' + _id);
+			var $deleteButton = $('#deleteButton' + _id);
+			var studentID = $studentID.html();
+			var studentFirstname = $studentFirstname.html();
+			var studentLastname = $studentLastname.html();
+			var studentGrade = $studentGrade.html();
+			$studentID.html('<input id=newStudentId value="' + studentID + '">');
+			$studentFirstname.html('<input id=newStudentFirstname value="' + studentFirstname + '">');
+			$studentLastname.html('<input id=newStudentLastname value="' + studentLastname + '">');
+			$studentGrade.html('<input id=newStudentGrade value="' + studentGrade + '">');
+			$updateButton.html('<button onclick="submitUpdate()">Submit</button>');
+			$deleteButton.html('<button onclick="cancelUpdate()">Cancel</button>');
+		};
+
+		function submitUpdate() {
+			var firstname = $('#newStudentFirstname').val();
+			var lastname = $('#newStudentLastname').val();
+			var id = $('#newStudentBarcode').val();
+			var grade = $('#newStudentGrade').val();
+			var errorCount = 0;
+			if (firstname == '') {
+				errorCount++;
+				$('#newStudentFirstname').addClass('error');
+			} else {
+				$('#newStudentFirstname').removeClass('error');
+			}
+			if (lastname == '') {
+				errorCount++;
+				$('#newStudentLastname').addClass('error');
+			} else {
+				$('#newStudentLastname').removeClass('error');
+			}
+			if (id == '') {
+				errorCount++;
+				$('#newStudentBarcode').addClass('error');
+			} else {
+				$('#newStudentBarcode').removeClass('error');
+			}
+			if (grade == '') {
+				errorCount++;
+				$('#newStudentGrade').addClass('error');
+			} else {
+				$('#newStudentGrade').removeClass('error');
+			}
+			if (errorCount > 0) {
+				return false;
+			}
+			var updatedStudent = {
+				firstname:$('#newStudentFirstname').val(),
+				lastname:$('#newStudentLastname').val(),
+				id:$('#newStudentId').val(),
+				grade:$('#newStudentGrade').val() 
+			};
+			socket.emit('update student fields', updatedStudent);
+			socket.emit('update student table');
+			return false;
+		};
+
+		function cancelUpdate() {
+			socket.emit('update student table');
+		};
+
+	</script>
+</body>
+</html>
